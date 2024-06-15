@@ -66,16 +66,20 @@ def sniff_http():
 def is_email_shiran(packet):
     return HTTPRequest in packet and packet[HTTPRequest].Method.decode() == METHOD
 
+
 def is_email(packet):
-    if HTTP in packet and Raw in packet:
-        load = packet[Raw].load.decode()
-        if "HTTP" in load:
-            # מצא את כל הכתובות האימייל בתוך התוכן של ה-HTTP באמצעות רגולריות
-            emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', load)
-            if emails:
-                return True
-            else:
-                return False
+    try:
+        if HTTP in packet and Raw in packet:
+            load = packet[Raw].load.decode()
+            if "HTTP" in load:
+                # מצא את כל הכתובות האימייל בתוך התוכן של ה-HTTP באמצעות רגולריות
+                emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', load)
+                if emails:
+                    return True
+                else:
+                    return False
+    except Exception as e:
+        print(ERROR_MSG, e)
 
 
 def print_email_http(packet):
