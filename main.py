@@ -20,7 +20,7 @@ WELCOME_MSG = "Welcome to Magshimim's Forecast Server!"
 METHOD = "GET"
 MENU = "Welcome to Magshishark!\nPlease select sniffing state:\n1. DNS \n2. Forecast\n3. HTTP\n4. E-mails\nOr select 0 to Exit: "
 HTTP_SNIFF_TIMES = 4
-
+EMAIL_PATTERN = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 def print_ip(packet):
     try:
@@ -63,27 +63,22 @@ def sniff_http():
     sniff(count=HTTP_SNIFF_TIMES, lfilter=is_http, prn=print_http)
 
 
-def is_email_shiran(packet):
-    return HTTPRequest in packet and packet[HTTPRequest].Method.decode() == METHOD
-
-
 def is_email(packet):
     try:
         if HTTP in packet and Raw in packet:
-            load = packet[Raw].load.decode()
-            if "HTTP" in load:
-                # מצא את כל הכתובות האימייל בתוך התוכן של ה-HTTP באמצעות רגולריות
-                emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', load)
-                if emails:
-                    return True
-                else:
-                    return False
+            load = str(packet[Raw].load)
+            # מצא את כל הכתובות האימייל בתוך התוכן של ה-HTTP באמצעות רגולריות
+            emails = re.findall(EMAIL_PATTERN, load)
+            if emails:
+                return True
+            else:
+                return False
     except Exception as e:
         print(ERROR_MSG, e)
 
 
 def print_email_http(packet):
-    emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', packet[Raw].load.decode())
+    emails = re.findall(EMAIL_PATTERN, str(packet[Raw].load))
     for email in emails:
         print(email)
 
